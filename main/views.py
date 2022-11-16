@@ -94,20 +94,20 @@ def seed(request):
         "ayhcompanyltd@gmail.com"
     ]
 
-    for i in range(6817):
-        Landing_Logs.objects.create(
-            landing_page = i
-        )
+    # for i in range(6817):
+    #     Landing_Logs.objects.create(
+    #         landing_page = i
+    #     )
 
-    for i in range(291):
-        application_Logs.objects.create(
-            application_page = i
-        )
+    # for i in range(291):
+    #     application_Logs.objects.create(
+    #         application_page = i
+    #     )
 
-    for i in range(5905):
-        unique_Logs.objects.create(
-            unique = i
-        )
+    # for i in range(5905):
+    #     unique_Logs.objects.create(
+    #         unique = i
+    #     )
 
     for i in data:
         try:
