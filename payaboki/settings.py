@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-2_cl#4y*sorob!p1=!_!#6%v82d(%=em39gij6afy%k%oknf@n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'dashboard',
     'main',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -124,3 +125,7 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'dashboard.User'
+
+LOGIN_URL = '/dashboard/login/'
