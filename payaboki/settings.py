@@ -32,6 +32,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework.authtoken',
+    'api',
+    'rest_framework',
     'dashboard',
     'main',
     'django.contrib.admin',
@@ -132,3 +135,4 @@ AUTH_USER_MODEL = 'dashboard.User'
 LOGIN_URL = '/dashboard/login/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
