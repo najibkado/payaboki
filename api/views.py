@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
-from .serializers import UserSerializer
+from .serializers import UserSerializer, EmailVerificationSerializer
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status 
 from dashboard.models import User, Email_Verification
@@ -93,9 +93,11 @@ class EmailApiVerificationView(APIView):
         serializer = EmailVerificationSerializer(data=request.data)
 
         if serializer.is_valid():
-            user = User.objects.get(pk=serializer.data['user'])
+            user = User.objects.get(pk=int(serializer.data['user']))
             otp = Email_Verification.objects.filter(user=user).last()
-            if otp.code == serializer.data['code']:
-                return Response(status=status.HTTP_201_CREATED)
+            if int(otp.code) == int(serializer.data['code']):
+                user.is_verified = True
+                user.save()
+                return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
