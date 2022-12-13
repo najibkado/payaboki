@@ -12,8 +12,30 @@ from rest_framework import status
 from dashboard.models import User, Email_Verification
 from django.db import IntegrityError
 import random
+from django.core.mail import EmailMessage
+import threading
+from django.core.mail import send_mail
+import imaplib2
 
 # Create your views here.
+class EmailThread(threading.Thread):
+    """
+    Email Thread Class:
+    This is to speed the process of sending email to users
+    The thread will be used so as to not use network thread
+    """
+
+    def __init__(self, email):
+        self.email = email
+        threading.Thread.__init__(self)
+
+    def run(self):
+        """
+        Execute the message
+        """
+        self.email.send(fail_silently=False)
+
+
 class LoginApiView(APIView):
 
     def post(self, request):
@@ -24,6 +46,23 @@ class LoginApiView(APIView):
         authenticated_user = authenticate(request, username=username, password=password)
 
         if authenticated_user is not None:
+            user = authenticated_user
+            subject = 'PayAboki Account Activation'
+            body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+str(6768689)+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+            sender_email = 'payaboki00@gmail.com'
+            
+            try:
+                send_mail(
+                    subject,
+                    body,
+                    sender_email,
+                    [user.email],
+                    fail_silently=False,
+                )
+            except imaplib2.IMAP4.abort:
+                print("Exception")
+
+            # EmailThread(new_email).start()
 
             serializer = UserSerializer(authenticated_user)
             token = Token.objects.get(user=authenticated_user).key
@@ -55,6 +94,19 @@ class UserRegisterApiView(APIView):
                 otp.save()
                 print(otp.code)
                 #TODO: Send Email Verification Code to user
+                 #Send User Email Verification Mail
+                subject = 'PayAboki Account Activation'
+                body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+                sender_email = 'payaboki00@gmail.com'
+                
+                new_email = EmailMessage(
+                    subject,
+                    body,
+                    sender_email,
+                    [user.email],
+                )
+
+                EmailThread(new_email).start()
             except IntegrityError:
                 pass
             return Response({'user_id': user.id, 'user': serializer.data, 'token': token.key }, status=status.HTTP_201_CREATED)
@@ -84,6 +136,19 @@ class EmailApiVerificationView(APIView):
             )
             otp.save()
             print(otp.code)
+
+            subject = 'PayAboki Account Activation'
+            body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+            sender_email = 'payaboki00@gmail.com'
+            
+            new_email = EmailMessage(
+                subject,
+                body,
+                sender_email,
+                [user.email],
+            )
+
+            EmailThread(new_email).start()
         except IntegrityError:
             return Response(status.HTTP_400_BAD_REQUEST)
 

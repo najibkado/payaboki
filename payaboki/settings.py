@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+from decouple import config
 from pathlib import Path
 import os
 
@@ -135,4 +135,13 @@ AUTH_USER_MODEL = 'dashboard.User'
 LOGIN_URL = '/dashboard/login/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+# Email Settings
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = 587
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_BACKEND = config('EMAIL_BACKEND')
 
