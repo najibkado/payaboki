@@ -54,7 +54,7 @@ class LoginApiView(APIView):
             send_mail(
                 subject,
                 body,
-                user.email,
+                "najibkado@gmail.com",
             )
 
             # EmailThread(new_email).start()
@@ -139,7 +139,7 @@ class EmailApiVerificationView(APIView):
                 body,
                 user.email,
             )
-            
+
         except IntegrityError:
             return Response(status.HTTP_400_BAD_REQUEST)
 
