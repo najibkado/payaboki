@@ -91,7 +91,7 @@ class UserRegisterApiView(APIView):
                 #TODO: Send Email Verification Code to user
                  #Send User Email Verification Mail
                 subject = 'PayAboki Account Activation'
-                body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+                body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+ '\n' + otp.code + '\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
                 sender_email = 'payaboki00@gmail.com'
                 
                 send_mail(
@@ -131,7 +131,7 @@ class EmailApiVerificationView(APIView):
             print(otp.code)
 
             subject = 'PayAboki Account Activation'
-            body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+            body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+ '\n' + otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
             sender_email = 'payaboki00@gmail.com'
             
             send_mail(
