@@ -14,7 +14,7 @@ from django.db import IntegrityError
 import random
 from django.core.mail import EmailMessage
 import threading
-from django.core.mail import send_mail
+from .email_controller import send_mail
 import imaplib2
 
 # Create your views here.
@@ -49,18 +49,13 @@ class LoginApiView(APIView):
             user = authenticated_user
             subject = 'PayAboki Account Activation'
             body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+str(6768689)+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
-            sender_email = 'payaboki00@gmail.com'
             
-            try:
-                send_mail(
-                    subject,
-                    body,
-                    sender_email,
-                    [user.email],
-                    fail_silently=False,
-                )
-            except imaplib2.IMAP4.abort:
-                print("Exception")
+
+            send_mail(
+                subject,
+                body,
+                user.email,
+            )
 
             # EmailThread(new_email).start()
 
@@ -99,14 +94,12 @@ class UserRegisterApiView(APIView):
                 body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
                 sender_email = 'payaboki00@gmail.com'
                 
-                new_email = EmailMessage(
+                send_mail(
                     subject,
                     body,
-                    sender_email,
-                    [user.email],
+                    user.email,
                 )
 
-                EmailThread(new_email).start()
             except IntegrityError:
                 pass
             return Response({'user_id': user.id, 'user': serializer.data, 'token': token.key }, status=status.HTTP_201_CREATED)
@@ -141,14 +134,12 @@ class EmailApiVerificationView(APIView):
             body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
             sender_email = 'payaboki00@gmail.com'
             
-            new_email = EmailMessage(
+            send_mail(
                 subject,
                 body,
-                sender_email,
-                [user.email],
+                user.email,
             )
-
-            EmailThread(new_email).start()
+            
         except IntegrityError:
             return Response(status.HTTP_400_BAD_REQUEST)
 
