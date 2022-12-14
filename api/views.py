@@ -46,16 +46,16 @@ class LoginApiView(APIView):
         authenticated_user = authenticate(request, username=username, password=password)
 
         if authenticated_user is not None:
-            user = authenticated_user
-            subject = 'PayAboki Account Activation'
-            body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+str(6768689)+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+            # user = authenticated_user
+            # subject = 'PayAboki Account Activation'
+            # body = 'Hello ' + user.username + ', Please use the code below to verify your account.\n'+str(6768689)+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
             
 
-            send_mail(
-                subject,
-                body,
-                "najibkado@gmail.com",
-            )
+            # send_mail(
+            #     subject,
+            #     body,
+            #     "najibkado@gmail.com",
+            # )
 
             # EmailThread(new_email).start()
 

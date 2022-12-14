@@ -5,7 +5,7 @@ from decouple import config
 
 def send_mail(subject, body, reciever_email):
     message = MIMEMultipart()
-    message["from"] = "PayAboki"
+    message["from"] = "PayAboki Verify"
     message["to"] = reciever_email
     message["subject"] = subject
     message.attach(MIMEText(body))
