@@ -9,7 +9,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from .serializers import UserSerializer, EmailVerificationSerializer
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status 
-from dashboard.models import User, Email_Verification
+from dashboard.models import User, Email_Verification, Password_Reset_Request
 from django.db import IntegrityError
 import random
 from django.core.mail import EmailMessage
@@ -157,3 +157,86 @@ class EmailApiVerificationView(APIView):
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordRecoveryAPIView(APIView):
+
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+            print(user)
+        except User.DoesNotExist:
+            print("Hello World!")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            otp = Email_Verification(
+                user = user,
+                code = str(random.randint(100000, 999999))
+            )
+            otp.save()
+
+            print(otp.code)
+
+            subject = 'PayAboki Account Recovery'
+            body = 'Hello ' + user.username + ', Please use the code below to recover your password.\n'+ '\n' + otp.code+'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+            sender_email = 'payaboki00@gmail.com'
+            
+            send_mail(
+                subject,
+                body,
+                user.email,
+            )
+        except IntegrityError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_200_OK)
+
+    def post(self, request, username):
+        data=request.data
+        try:
+            user = User.objects.get(username=data['user'])
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        otp = Email_Verification.objects.filter(user=user).last()
+        if int(otp.code) == int(data['code']):
+            reset_req = Password_Reset_Request(
+                user = user,
+                is_verified = True,
+                has_set_new = False
+            )
+            reset_req.save() 
+            print(otp.code)
+            return Response({"reset_link" : f"https://payaboki.com/api/reset/new/{reset_req.pk}"}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetAPIView(APIView):
+
+    def post(self, request, id):
+        data = request.data
+        try:
+            req = Password_Reset_Request.objects.get(pk=id)
+        except Password_Reset_Request.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if req.has_set_new:
+            return Response(status=status.HTTP_208_ALREADY_REPORTED)
+
+        user = req.user
+
+        user.set_password(data['new_password'])
+        req.has_set_new = True
+        req.save()
+        user.save()
+        subject = 'PayAboki Account Recovery'
+        body = 'Hello ' + user.username + '\n' + '\n' +',Your password has been successfully reset.\n'+ '\n' + "If you didn't initiate this request, Please be sure to go and reset your password immediately." +'\n' + '\n' + '\n'+'Thankyou for choosing PayAboki'
+        
+        send_mail(
+            subject,
+            body,
+            user.email,
+        )
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+        
+        

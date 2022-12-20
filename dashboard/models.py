@@ -19,3 +19,9 @@ class Email_Verification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     code = models.CharField(max_length=255)
     date = models.DateTimeField(auto_now=True)
+
+class Password_Reset_Request(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_verified = models.BooleanField(default=True)
+    has_set_new = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
