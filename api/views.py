@@ -9,7 +9,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from .serializers import UserSerializer, EmailVerificationSerializer
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status 
-from dashboard.models import User, Email_Verification, Password_Reset_Request
+from dashboard.models import User, Email_Verification, Password_Reset_Request, Wallet, Transaction, Escrow
 from django.db import IntegrityError
 import random
 from django.core.mail import EmailMessage
@@ -59,9 +59,51 @@ class LoginApiView(APIView):
 
             # EmailThread(new_email).start()
 
+            try:
+                wallet = Wallet.objects.get(user=authenticated_user)
+            except Wallet.DoesNotExist:
+                wallet = Wallet(
+                    user= authenticated_user,
+                    balance = 0.00
+                )
+
+                wallet.save()
+            
+
             serializer = UserSerializer(authenticated_user)
             token = Token.objects.get(user=authenticated_user).key
-            return Response({ 'user_id': authenticated_user.id, 'user':serializer.data ,'token': token }, status=status.HTTP_200_OK)
+            escrow = []
+            transactions = []
+
+            esc = Escrow.objects.filter(sender = authenticated_user)
+            esc2 = Escrow.objects.filter(reciever = authenticated_user)
+            tran = Transaction.objects.filter(sender = authenticated_user)
+            tran2 = Transaction.objects.filter(reciever = authenticated_user)
+
+            for i in esc:
+                escrow.append(i.to_json())
+
+            for i in esc2:
+                escrow.append(i.to_json())
+
+            for i in tran:
+                transactions.append(i.to_json())
+
+            for i in tran2:
+                transactions.append(i.to_json())
+
+            wallet = Wallet.objects.get(user=authenticated_user)
+
+
+
+            data = {
+                "user": { 'user_id': authenticated_user.id, 'user':serializer.data ,'token': token },
+                "profile": { 'username': serializer.data["username"], 'name': serializer.data["first_name"], 'phone': serializer.data["last_name"] },
+                "escrowInfo": { 'trans': escrow },
+                "transactions": transactions,
+                "walletInfo": { 'wallet_id': wallet.user.username, 'balance': wallet.balance}
+            }
+            return Response(data, status=status.HTTP_200_OK)
 
             # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -102,6 +144,17 @@ class UserRegisterApiView(APIView):
 
             except IntegrityError:
                 pass
+
+            try:
+                wallet = Wallet(
+                    user= user,
+                    balance = 0.00
+                )
+
+                wallet.save()
+            except IntegrityError:
+                pass
+
             return Response({'user_id': user.id, 'user': serializer.data, 'token': token.key }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -237,6 +290,22 @@ class PasswordResetAPIView(APIView):
             user.email,
         )
         return Response(status=status.HTTP_202_ACCEPTED)
+
+class TransactionsAPIView(APIView):
+
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        transactions = Transaction.objects.filter(sender=request.user, reciever=request.user)
+
+        return Response(transactions, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        data = request.data
+        pass
+
 
         
         
