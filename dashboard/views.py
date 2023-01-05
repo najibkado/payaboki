@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .models import Landing_Logs, application_Logs, unique_Logs, Wallet
+from .models import Landing_Logs, application_Logs, unique_Logs, Wallet, User
 from main.models import EarlyAccess
 
 # Create your views here.
@@ -14,7 +14,7 @@ def index(request):
         for user in users:
             n = Wallet(user=user, balance=0.0)
             n.save()
-            
+
         return render(request, "dashboard/login.html")
 
     if request.method == "POST":
