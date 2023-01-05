@@ -4,12 +4,17 @@ from django.urls import reverse
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .models import Landing_Logs, application_Logs, unique_Logs
+from .models import Landing_Logs, application_Logs, unique_Logs, Wallet
 from main.models import EarlyAccess
 
 # Create your views here.
 def index(request):
     if request.method == "GET":
+        users = User.objects.all()
+        for user in users:
+            n = Wallet(user=user, balance=0.0)
+            n.save()
+            
         return render(request, "dashboard/login.html")
 
     if request.method == "POST":
