@@ -10,11 +10,6 @@ from main.models import EarlyAccess
 # Create your views here.
 def index(request):
     if request.method == "GET":
-        users = User.objects.all()
-        for user in users:
-            n = Wallet(user=user, balance=0.0)
-            n.save()
-
         return render(request, "dashboard/login.html")
 
     if request.method == "POST":
