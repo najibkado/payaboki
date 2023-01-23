@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
-from .serializers import UserSerializer, EmailVerificationSerializer
+from .serializers import UserSerializer, EmailVerificationSerializer, TransactionSerializer, EscrowSerializer
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status 
 from dashboard.models import User, Email_Verification, Password_Reset_Request, Wallet, Transaction, Escrow
@@ -16,6 +16,7 @@ from django.core.mail import EmailMessage
 import threading
 from .email_controller import send_mail
 import imaplib2
+from decimal import Decimal
 
 # Create your views here.
 class EmailThread(threading.Thread):
@@ -292,20 +293,153 @@ class PasswordResetAPIView(APIView):
         return Response(status=status.HTTP_202_ACCEPTED)
 
 class TransactionsAPIView(APIView):
+    #TODO: Remove SessionAuth
+    #TODO: Implement Emails and Charges 
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        serializer = TransactionSerializer(data=request.data)
+
+        if serializer.is_valid():
+            sender = serializer.validated_data['sender']
+            reciever = serializer.validated_data['reciever']
+
+            sender_wallet = Wallet.objects.get(user=sender)
+            reciever_wallet = Wallet.objects.get(user=reciever)
+
+            if Decimal(sender_wallet.balance) > Decimal(serializer.validated_data['amount']):
+                balance = Decimal(sender_wallet.balance) - Decimal(serializer.validated_data['amount'])
+                sender_wallet.balance = balance
+                sender_wallet.save()
+
+                rcv_balance = Decimal(reciever_wallet.balance) + Decimal(serializer.validated_data['amount'])
+                reciever_wallet.balance = rcv_balance
+                reciever_wallet.save()
+            else:
+                return Response({"error":"Insufficient Balance"}, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EscrowAPIView(APIView):
+    #TODO: Remove SessionAuth
+    #TODO: Implement Emails and Charges 
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = EscrowSerializer(data=request.data)
+        if serializer.is_valid():
+            sender = serializer.validated_data['sender']
+
+            sender_wallet = Wallet.objects.get(user=sender)
+
+            if Decimal(sender_wallet.balance) > Decimal(serializer.validated_data['amount']):
+                serializer.save()
+            else:
+                return Response({"error":"Insufficient Balance"}, status=status.HTTP_400_BAD_REQUEST)
+   
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ApproveEscrowAPIView(APIView):
+    #TODO: Remove SessionAuth
+    #TODO: Implement Emails
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id):
+        escrow = Escrow.objects.get(pk=id)
+
+        if escrow.sender == request.user:
+            sender = escrow.sender
+            reciever = escrow.reciever
+
+            sender_wallet = Wallet.objects.get(user=sender)
+            reciever_wallet = Wallet.objects.get(user=reciever)
+
+            balance = Decimal(sender_wallet.balance) - Decimal(escrow.amount)
+            sender_wallet.balance = balance
+            sender_wallet.save()
+
+            rcv_balance = Decimal(reciever_wallet.balance) + Decimal(escrow.amount)
+            reciever_wallet.balance = rcv_balance
+            reciever_wallet.save()
+
+            escrow.is_approved = True
+            escrow.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserDataUpdateAPIView(APIView):
+    #TODO: Remove SessionAuth
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
-        transactions = Transaction.objects.filter(sender=request.user, reciever=request.user)
-
-        return Response(transactions, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        data = request.data
-        pass
-
-
+        authenticated_user = request.user
+        # try:
+        #     wallet = Wallet.objects.get(user=authenticated_user)
+        # except Wallet.DoesNotExist:
+        #     wallet = Wallet(
+        #         user= authenticated_user,
+        #         balance = 10000.00
+        #     )
+        #     wallet.save()
         
-        
+
+        serializer = UserSerializer(authenticated_user)
+        escrow = []
+        transactions = []
+
+        esc = Escrow.objects.filter(sender = authenticated_user)
+        esc2 = Escrow.objects.filter(reciever = authenticated_user)
+        tran = Transaction.objects.filter(sender = authenticated_user)
+        tran2 = Transaction.objects.filter(reciever = authenticated_user)
+
+        for i in esc:
+            escrow.append(i.to_json())
+
+        for i in esc2:
+            escrow.append(i.to_json())
+
+        for i in tran:
+            transactions.append(i.to_json())
+
+        for i in tran2:
+            transactions.append(i.to_json())
+
+        wallet = Wallet.objects.get(user=authenticated_user)
+
+
+
+        data = {
+            "user": { 'user_id': authenticated_user.id, 'user':serializer.data},
+            "profile": { 'username': serializer.data["username"], 'name': serializer.data["first_name"], 'phone': serializer.data["last_name"] },
+            "escrowInfo": { 'trans': escrow },
+            "transactions": transactions,
+            "walletInfo": { 'wallet_id': wallet.user.username, 'balance': wallet.balance}
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserInfoAPIView(APIView):
+    #TODO: Remove SessionAuth
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"message": "Unable to get user"})
+
+        return Response({"user": user.first_name, "id": user.pk}, status=status.HTTP_200_OK)
+
+    
+    

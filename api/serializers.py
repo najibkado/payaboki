@@ -1,4 +1,4 @@
-from dashboard.models import User, Email_Verification
+from dashboard.models import User, Email_Verification, Transaction, Escrow
 from rest_framework import serializers
 
 
@@ -41,4 +41,24 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
         fields = [
             'user',
             'code'
+        ]
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = [
+            'sender',
+            'reciever',
+            'amount',
+            'method'
+        ]
+
+class EscrowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Escrow
+        fields = [
+            'sender',
+            'reciever',
+            'amount',
+            'method'
         ]
