@@ -12,5 +12,5 @@ urlpatterns = [
     path('escrow', views.EscrowAPIView.as_view()),
     path('escrow/approve/<int:id>', views.ApproveEscrowAPIView.as_view()),
     path('user-data', views.UserDataUpdateAPIView.as_view()),
-    path('user/', views.GetUserInfoAPIView.as_view()),
+    path('user/<str:username>', views.GetUserInfoAPIView.as_view()),
 ]

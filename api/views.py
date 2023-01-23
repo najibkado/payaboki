@@ -430,8 +430,8 @@ class UserDataUpdateAPIView(APIView):
 
 class GetUserInfoAPIView(APIView):
     #TODO: Remove SessionAuth
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication, TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, username):
         try:
