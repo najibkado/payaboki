@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import uuid
 
 # Create your models here.
 
@@ -38,16 +39,20 @@ class Transaction(models.Model):
     method = models.IntegerField()
     datte = models.DateField(auto_now=True)
     time = models.TimeField(auto_now=True)
+    ref = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def to_json(self):
         return {
             "transaction_id": self.pk,
             "sender": self.sender.first_name,
+            "sender_email": self.sender.email,
             "reciever": self.reciever.first_name,
+            "reciever_email": self.reciever.email,
             "amount": self.amount,
             "method": self.method,
             "date": self.datte,
-            "time": self.time
+            "time": self.time,
+            "ref": self.ref
         }
 
 class Escrow(models.Model):
@@ -58,16 +63,20 @@ class Escrow(models.Model):
     is_approved = models.BooleanField(default=False)
     datte = models.DateField(auto_now=True)
     time = models.TimeField(auto_now=True)
+    ref = models.UUIDField(default=uuid.uuid4().hex, editable=False, unique=True)
 
     def to_json(self):
         return {
             "escrow_id": self.pk,
             "sender": self.sender.first_name,
+            "sender_email": self.sender.email,
             "reciever": self.reciever.first_name,
+            "reciever_email": self.reciever.email,
             "amount": self.amount,
             "approved": self.is_approved,
             "method": self.method,
             "date": self.datte,
-            "time": self.time
+            "time": self.time,
+            "ref": self.ref
         }
     
