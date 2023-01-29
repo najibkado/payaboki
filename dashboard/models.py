@@ -63,7 +63,7 @@ class Escrow(models.Model):
     is_approved = models.BooleanField(default=False)
     datte = models.DateField(auto_now=True)
     time = models.TimeField(auto_now=True)
-    ref = models.UUIDField(default=uuid.uuid4().hex, editable=False, unique=True)
+    ref = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def to_json(self):
         return {
