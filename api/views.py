@@ -17,6 +17,7 @@ import threading
 from .email_controller import send_mail
 import imaplib2
 from decimal import Decimal
+from . import payment_channel
 
 # Create your views here.
 class EmailThread(threading.Thread):
@@ -376,11 +377,11 @@ class ApproveEscrowAPIView(APIView):
 
 class UserDataUpdateAPIView(APIView):
     #TODO: Remove SessionAuth
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication, TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        authenticated_user = request.user
+        authenticated_user =User.objects.get(pk=3)
         # try:
         #     wallet = Wallet.objects.get(user=authenticated_user)
         # except Wallet.DoesNotExist:
@@ -429,9 +430,8 @@ class UserDataUpdateAPIView(APIView):
 
 
 class GetUserInfoAPIView(APIView):
-    #TODO: Remove SessionAuth
-    # authentication_classes = [SessionAuthentication, TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, username):
         try:
@@ -440,6 +440,20 @@ class GetUserInfoAPIView(APIView):
             return Response({"message": "Unable to get user"})
 
         return Response({"user": user.first_name, "id": user.pk}, status=status.HTTP_200_OK)
+
+
+class GetVirtualAccount(APIView):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        deposit_req = DepositRequest(user=request.user)
+        deposit_req.save()
+        flw = payment_channel.FlutterwavePaymentCollector()
+        acct = flw.create_virtual_account(request.user.first_name, request.user.email, deposit_req.ref)
+
+        return Response(acct, status=status.HTTP_200_OK)
+
 
     
     

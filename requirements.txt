@@ -3,3 +3,4 @@ markdown
 djangorestframework
 python-decouple
 imaplib2
+rave_python

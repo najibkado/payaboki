@@ -79,4 +79,11 @@ class Escrow(models.Model):
             "time": self.time,
             "ref": self.ref
         }
+
+class DepositRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="deposit_user")
+    is_completed = models.BooleanField(default=False)
+    datte = models.DateField(auto_now=True)
+    time = models.TimeField(auto_now=True)
+    ref = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     
