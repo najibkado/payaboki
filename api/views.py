@@ -450,7 +450,7 @@ class GetVirtualAccount(APIView):
         deposit_req = DepositRequest(user=request.user)
         deposit_req.save()
         flw = payment_channel.FlutterwavePaymentCollector()
-        acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref), decimal.Decimal(amount))
+        acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref), amount)
 
         return Response(acct, status=status.HTTP_200_OK)
 
