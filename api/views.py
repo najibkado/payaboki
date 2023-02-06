@@ -9,7 +9,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from .serializers import UserSerializer, EmailVerificationSerializer, TransactionSerializer, EscrowSerializer
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status 
-from dashboard.models import User, Email_Verification, Password_Reset_Request, Wallet, Transaction, Escrow
+from dashboard.models import User, Email_Verification, Password_Reset_Request, Wallet, Transaction, Escrow, DepositRequest
 from django.db import IntegrityError
 import random
 from django.core.mail import EmailMessage
@@ -450,7 +450,7 @@ class GetVirtualAccount(APIView):
         deposit_req = DepositRequest(user=request.user)
         deposit_req.save()
         flw = payment_channel.FlutterwavePaymentCollector()
-        acct = flw.create_virtual_account(request.user.first_name, request.user.email, deposit_req.ref)
+        acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref))
 
         return Response(acct, status=status.HTTP_200_OK)
 
