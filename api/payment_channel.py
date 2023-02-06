@@ -6,10 +6,13 @@ class FlutterwavePaymentCollector:
         self.rave = Rave(secretKey=config('FLW_SEC_KEY'), publicKey=config('FLW_PLC_KEY'), usingEnv=False)
         self.country = country
 
-    def create_virtual_account(self, account_alias, email, tx_ref):
+    def create_virtual_account(self, account_alias, email, tx_ref, amount):
         response = self.rave.VirtualAccount.create(
-            {"is_permanent":False, "firstname": account_alias, "tx_ref":tx_ref, "email":email, "account_alias":account_alias, "narration": account_alias}
+            {"is_permanent":False, "amount":amount, "firstname": account_alias, "seckey": config('FLW_SEC_KEY'), "tx_ref":tx_ref, "email":email, "account_alias":account_alias, "narration": account_alias}
         )
+
+        print(response)
+
         if response["error"]:
             return {"error": response["message"]}
         else:

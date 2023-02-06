@@ -446,11 +446,11 @@ class GetVirtualAccount(APIView):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, amount):
         deposit_req = DepositRequest(user=request.user)
         deposit_req.save()
         flw = payment_channel.FlutterwavePaymentCollector()
-        acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref))
+        acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref), decimal.Decimal(amount))
 
         return Response(acct, status=status.HTTP_200_OK)
 
