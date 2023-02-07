@@ -453,8 +453,10 @@ class GetVirtualAccount(APIView):
         acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref), amount)
         deposit_req.is_completed = True
         deposit_req.save()
+        users = User.objects.all()
+        wals = Wallet.objects.all()
         wallet = Wallet.objects.get(user=request.user)
-        wallet.balance += Decimal(acct.amount)
+        wallet.balance += Decimal(acct['amount'])
         wallet.save()
         return Response(acct, status=status.HTTP_200_OK)
 
