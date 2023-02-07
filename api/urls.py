@@ -14,4 +14,5 @@ urlpatterns = [
     path('user-data', views.UserDataUpdateAPIView.as_view()),
     path('user/<str:username>', views.GetUserInfoAPIView.as_view()),
     path('vacct/<str:amount>', views.GetVirtualAccount.as_view()),
+    path('vesc/<str:amount>/<int:reciever>', views.EscrowVirtualAccount.as_view()),
 ]

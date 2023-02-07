@@ -453,11 +453,28 @@ class GetVirtualAccount(APIView):
         acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref), amount)
         deposit_req.is_completed = True
         deposit_req.save()
-        users = User.objects.all()
-        wals = Wallet.objects.all()
         wallet = Wallet.objects.get(user=request.user)
         wallet.balance += Decimal(acct['amount'])
         wallet.save()
+        return Response(acct, status=status.HTTP_200_OK)
+
+class EscrowVirtualAccount(APIView):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, amount, reciever):
+
+        esccrow_req = Escrow(
+            sender = request.user,
+            reciever = User.objects.get(pk=reciever),
+            amount = Decimal(amount),
+            method = 2
+        )
+
+        esccrow_req.save()
+        flw = payment_channel.FlutterwavePaymentCollector()
+        acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(esccrow_req.ref), amount)
+       
         return Response(acct, status=status.HTTP_200_OK)
 
 
