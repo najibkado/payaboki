@@ -377,11 +377,11 @@ class ApproveEscrowAPIView(APIView):
 
 class UserDataUpdateAPIView(APIView):
     #TODO: Remove SessionAuth
-    # authentication_classes = [SessionAuthentication, TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        authenticated_user =User.objects.get(pk=3)
+        authenticated_user =request.user
         # try:
         #     wallet = Wallet.objects.get(user=authenticated_user)
         # except Wallet.DoesNotExist:
@@ -451,7 +451,11 @@ class GetVirtualAccount(APIView):
         deposit_req.save()
         flw = payment_channel.FlutterwavePaymentCollector()
         acct = flw.create_virtual_account(request.user.first_name, request.user.email, str(deposit_req.ref), amount)
-
+        deposit_req.is_completed = True
+        deposit_req.save()
+        wallet = Wallet.objects.get(user=request.user)
+        wallet.balance += Decimal(acct.amount)
+        wallet.save()
         return Response(acct, status=status.HTTP_200_OK)
 
 
