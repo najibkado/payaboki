@@ -9,9 +9,9 @@ import random
 
 # Create your views here.
 def index(request):
-    Landing_Logs.objects.create(
-        landing_page = Landing_Logs.objects.last().landing_page + 1
-    )
+    # Landing_Logs.objects.create(
+    #     landing_page = Landing_Logs.objects.last().landing_page + 1
+    # )
     
     if request.session.get('visit', False):
         unique_Logs.objects.create(
